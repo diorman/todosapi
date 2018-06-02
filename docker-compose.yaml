@@ -53,17 +53,17 @@ services:
       timeout: 5s
       retries: 5
 
-  # leads-database:
-  #   image: postgres:9.5
-  #   environment:
-  #     - POSTGRES_USER=user
-  #     - POSTGRES_PASSWORD=pass
-  #     - POSTGRES_DB=db
-  #   healthcheck:
-  #     test: ["CMD", "pg_isready", "-U", "postgres"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "8002:8002"
+    environment:
+      - SERVICES=sqs,dynamodb
+      - DATA_DIR=/tmp/localstack/data
+      - HOSTNAME_EXTERNAL=localstack
+      - PORT_WEB_UI=8002
+    volumes:
+      - "/tmp/localstack"
 
   setup:
     build: .
@@ -72,11 +72,9 @@ services:
     depends_on:
       main-database:
         condition: service_healthy
-      # leads-database:
-      #   condition: service_healthy
       kong:
         condition: service_healthy
-      kong-migration:
+      localstack:
         condition: service_started
     command: go run cmd/setup/main.go
 

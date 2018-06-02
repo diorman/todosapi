@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 )
 
@@ -21,4 +22,8 @@ func WriteJSON(w http.ResponseWriter, code int, obj interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	w.Write(jsonData)
+}
+
+func WriteStandardErrorJSON(w http.ResponseWriter, code int) {
+	WriteJSON(w, code, errors.New(http.StatusText(code)))
 }

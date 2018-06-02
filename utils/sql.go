@@ -18,19 +18,3 @@ func CreateSQLDatabaseConnection(dataSource string) (*sql.DB, error) {
 
 	return db, nil
 }
-
-func SQLTransact(db *sql.DB, txFunc func(*sql.Tx) error) error {
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-
-	err = txFunc(tx)
-	if err != nil {
-		if e := tx.Rollback(); e != nil {
-			return e
-		}
-		return err
-	}
-	return tx.Commit()
-}

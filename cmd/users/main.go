@@ -18,8 +18,18 @@ func main() {
 	if err != nil {
 		log.Fatalf("%v\n", err)
 	}
-	router := httprouter.New()
-	h := users.NewHandler(router, db, todospoc.Config.KongAdminAddress)
+	sqs, err := utils.NewSQSClient()
+	if err != nil {
+		log.Fatalf("%v\n", err)
+	}
+	var (
+		router = httprouter.New()
+		store  = users.NewStore(db)
+		kong   = users.NewKongClient(todospoc.Config.KongAdminAddress)
+		h      = users.NewHandler(router, store, kong, sqs)
+		w      = users.NewWorker(sqs, store, kong, todospoc.Config.UserEventsQueueName)
+	)
+	go w.Start()
 	log.Println("starting users service")
 	http.ListenAndServe(":8080", h)
 }
